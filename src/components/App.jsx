@@ -39,7 +39,7 @@ export class App extends Component {
             largeImageURL,
           })
         );
-        console.log(dataImages);
+
         this.setState({
           status: 'resolved',
           images: [...images, ...dataImages],
