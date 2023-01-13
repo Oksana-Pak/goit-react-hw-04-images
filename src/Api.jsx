@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { ErrorMessage } from './Notifications';
+import { ErrorMessage } from './components/Services/Notifications';
 
 const URL = 'https://pixabay.com/api/';
 const API_KEY = '31298446-18dbc6951dc09e2b2b9c5e503';

@@ -5,7 +5,7 @@ import { Searchbar } from './Searchbar';
 import { ImageGallery } from './ImageGallery';
 import { Loader } from './Loader';
 import { Button } from './Button';
-import { fetchImages } from './Services/Api';
+import { fetchImages } from '../Api';
 import { ErrorMessage } from './Services/Notifications';
 
 export class App extends Component {
@@ -31,9 +31,18 @@ export class App extends Component {
           ErrorMessage(`There are no images with ${query} name`);
           return;
         }
+        const dataImages = response.hits.map(
+          ({ id, tags, webformatURL, largeImageURL }) => ({
+            id,
+            tags,
+            webformatURL,
+            largeImageURL,
+          })
+        );
+        console.log(dataImages);
         this.setState({
           status: 'resolved',
-          images: [...images, ...response.hits],
+          images: [...images, ...dataImages],
         });
       } catch {
         this.setState({ status: 'rejected' });
