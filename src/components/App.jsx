@@ -8,6 +8,13 @@ import { Button } from './Button';
 import { fetchImages } from '../Api';
 import { ErrorMessage } from './Services/Notifications';
 
+const Status = {
+  IDLE: 'idle',
+  PENDING: 'pending',
+  REJECTED: 'rejected',
+  RESOLVED: 'resolved',
+};
+
 export class App extends Component {
   state = {
     query: '',
@@ -21,12 +28,12 @@ export class App extends Component {
     const { query: prevQuery, page: prevPage } = prevState;
 
     if (prevQuery !== query || prevPage !== page) {
-      this.setState({ status: 'pending' });
+      this.setState({ status: Status.PENDING });
       try {
         const response = await fetchImages(query, page);
         if (!response.hits.length) {
           this.setState({
-            status: 'rejected',
+            status: Status.REJECTED,
           });
           ErrorMessage(`There are no images with ${query} name`);
           return;
@@ -41,11 +48,13 @@ export class App extends Component {
         );
 
         this.setState({
-          status: 'resolved',
+          status: Status.RESOLVED,
           images: [...images, ...dataImages],
         });
       } catch {
-        this.setState({ status: 'rejected' });
+        this.setState({
+          status: Status.REJECTED,
+        });
         ErrorMessage('Something wrong. Try again.');
       }
     }
@@ -65,40 +74,16 @@ export class App extends Component {
     const { handleFormSubmit, handleButtonClick } = this;
     const { images, status } = this.state;
 
-    if (status === 'idle') {
-      return (
-        <Container>
-          <Searchbar onSubmit={handleFormSubmit} />
-          <ToastContainer />
-        </Container>
-      );
-    }
-    if (status === 'pending') {
-      return (
-        <Container>
-          <Searchbar onSubmit={handleFormSubmit} />
+    return (
+      <Container>
+        <Searchbar onSubmit={handleFormSubmit} />
+        {(status === Status.PENDING || status === Status.RESOLVED) && (
           <ImageGallery items={images} />
-          <Loader />
-        </Container>
-      );
-    }
-    if (status === 'rejected') {
-      return (
-        <Container>
-          <Searchbar onSubmit={handleFormSubmit} />
-          <ToastContainer />
-        </Container>
-      );
-    }
-    if (status === 'resolved') {
-      return (
-        <Container>
-          <Searchbar onSubmit={handleFormSubmit} />
-          <ImageGallery items={images} />
-          <Button onClick={handleButtonClick} />
-          <ToastContainer />
-        </Container>
-      );
-    }
+        )}
+        {status === Status.PENDING && <Loader />}
+        {status === Status.RESOLVED && <Button onClick={handleButtonClick} />}
+        <ToastContainer />
+      </Container>
+    );
   }
 }
