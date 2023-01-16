@@ -76,13 +76,21 @@ export class App extends Component {
 
     return (
       <Container>
-        <Searchbar onSubmit={handleFormSubmit} />
-        {(status === Status.PENDING || status === Status.RESOLVED) && (
-          <ImageGallery items={images} />
+        {status && (
+          <>
+            <Searchbar onSubmit={handleFormSubmit} />
+            {(status === Status.PENDING || status === Status.RESOLVED) && (
+              <>
+                <ImageGallery items={images} />
+                {status === Status.PENDING && <Loader />}
+                {status === Status.RESOLVED && (
+                  <Button onClick={handleButtonClick} />
+                )}
+              </>
+            )}
+            <ToastContainer />
+          </>
         )}
-        {status === Status.PENDING && <Loader />}
-        {status === Status.RESOLVED && <Button onClick={handleButtonClick} />}
-        <ToastContainer />
       </Container>
     );
   }
