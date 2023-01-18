@@ -1,39 +1,38 @@
 import PropTypes from 'prop-types';
-import { Component } from 'react';
+import { useEffect } from 'react';
 import { Overlay, ModalContainer } from './Modal.styled';
 
-export class Modal extends Component {
-  static propTypes = {
-    urlLarge: PropTypes.string.isRequired,
-    tags: PropTypes.string.isRequired,
-  };
+export function Modal({ urlLarge, tags, onClose }) {
+  useEffect(() => {
+    const handleKeyDown = e => {
+      if (e.code === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
 
-  componentDidMount() {
-    window.addEventListener('keydown', this.handleKeyDown);
-  }
-  componentWillUnmount() {
-    window.removeEventListener('keydown', this.handleKeyDown);
-  }
-  handleKeyDown = e => {
-    if (e.code === 'Escape') {
-      this.props.onClose();
-    }
-  };
-  handleBackdropClick = e => {
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [onClose]);
+
+  const handleBackdropClick = e => {
     if (e.currentTarget === e.target) {
-      this.props.onClose();
+      onClose();
     }
   };
 
-  render() {
-    const { urlLarge, tags } = this.props;
-    const { handleBackdropClick } = this;
-    return (
-      <Overlay onClick={handleBackdropClick}>
-        <ModalContainer>
-          <img src={urlLarge} alt={tags} />
-        </ModalContainer>
-      </Overlay>
-    );
-  }
+  return (
+    <Overlay onClick={handleBackdropClick}>
+      <ModalContainer>
+        <img src={urlLarge} alt={tags} />
+      </ModalContainer>
+    </Overlay>
+  );
 }
+
+Modal.propTypes = {
+  urlLarge: PropTypes.string.isRequired,
+  tags: PropTypes.string.isRequired,
+  onClose: PropTypes.func.isRequired,
+};

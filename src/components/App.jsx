@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import { ToastContainer } from 'react-toastify';
 import { Container } from './App.styled';
 import { Searchbar } from './Searchbar';
@@ -15,29 +15,29 @@ const Status = {
   RESOLVED: 'resolved',
 };
 
-export class App extends Component {
-  state = {
-    query: '',
-    page: 1,
-    images: [],
-    status: 'idle',
-  };
+export function App() {
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [images, setImages] = useState([]);
+  const [totalImages, setTotalImages] = useState(0);
+  const [status, setStatus] = useState('idle');
 
-  async componentDidUpdate(_, prevState) {
-    const { query, page, images } = this.state;
-    const { query: prevQuery, page: prevPage } = prevState;
+  useEffect(() => {
+    if (query === '') {
+      return;
+    }
 
-    if (prevQuery !== query || prevPage !== page) {
-      this.setState({ status: Status.PENDING });
+    setStatus('pending');
+
+    (async () => {
       try {
         const response = await fetchImages(query, page);
         if (!response.hits.length) {
-          this.setState({
-            status: Status.REJECTED,
-          });
+          setStatus('rejected');
           ErrorMessage(`There are no images with ${query} name`);
           return;
         }
+
         const dataImages = response.hits.map(
           ({ id, tags, webformatURL, largeImageURL }) => ({
             id,
@@ -46,52 +46,46 @@ export class App extends Component {
             largeImageURL,
           })
         );
-
-        this.setState({
-          status: Status.RESOLVED,
-          images: [...images, ...dataImages],
-        });
+        setStatus('resolved');
+        setImages(prevImages => [...prevImages, ...dataImages]);
+        setTotalImages(response.totalHits);
+        console.log(response.totalHits);
       } catch {
-        this.setState({
-          status: Status.REJECTED,
-        });
+        setStatus('rejected');
         ErrorMessage('Something wrong. Try again.');
       }
-    }
-  }
+    })();
+  }, [query, page]);
 
-  handleButtonClick = () => {
-    this.setState(prevState => ({ page: prevState.page + 1 }));
+  const handleButtonClick = () => {
+    setPage(prevState => prevState + 1);
   };
-  handleFormSubmit = query => {
-    if (this.state.query === query) {
+  const handleFormSubmit = newQuery => {
+    if (query === newQuery) {
       return;
     }
-    this.setState({ query, page: 1, images: [] });
+    setQuery(newQuery);
+    setPage(1);
+    setImages([]);
   };
 
-  render() {
-    const { handleFormSubmit, handleButtonClick } = this;
-    const { images, status } = this.state;
-
-    return (
-      <Container>
-        {status && (
-          <>
-            <Searchbar onSubmit={handleFormSubmit} />
-            {(status === Status.PENDING || status === Status.RESOLVED) && (
-              <>
-                <ImageGallery items={images} />
-                {status === Status.PENDING && <Loader />}
-                {status === Status.RESOLVED && (
-                  <Button onClick={handleButtonClick} />
-                )}
-              </>
-            )}
-            <ToastContainer />
-          </>
-        )}
-      </Container>
-    );
-  }
+  return (
+    <Container>
+      {status && (
+        <>
+          <Searchbar onSubmit={handleFormSubmit} />
+          {(status === Status.PENDING || status === Status.RESOLVED) && (
+            <>
+              <ImageGallery items={images} />
+              {status === Status.PENDING && <Loader />}
+              {status === Status.RESOLVED && images.length < totalImages && (
+                <Button onClick={handleButtonClick} />
+              )}
+            </>
+          )}
+          <ToastContainer />
+        </>
+      )}
+    </Container>
+  );
 }
