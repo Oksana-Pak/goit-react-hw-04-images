@@ -49,7 +49,6 @@ export function App() {
         setStatus('resolved');
         setImages(prevImages => [...prevImages, ...dataImages]);
         setTotalImages(response.totalHits);
-        console.log(response.totalHits);
       } catch {
         setStatus('rejected');
         ErrorMessage('Something wrong. Try again.');
